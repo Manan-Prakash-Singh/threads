@@ -21,6 +21,8 @@ import * as z from "zod"
 import { ChangeEvent, useState } from "react"
 import { isBase64Image } from "@/lib/utils"
 import { useUploadThing } from '@/lib/uploadthing'
+import { updateUser } from "@/lib/actions/users.actions"
+import { usePathname, useRouter } from "next/navigation"
 
 interface Props {
   user: {
@@ -35,6 +37,9 @@ interface Props {
 }
 
 export default function AccountProfile({ user, btnTitle }: Props) {
+
+  const router = useRouter()
+  const pathname = usePathname()
 
   const [files, setFiles] = useState<File[]>([])
 
@@ -61,7 +66,21 @@ export default function AccountProfile({ user, btnTitle }: Props) {
       }
     }
 
-    // TODO : Update user profile
+    await updateUser({
+      name: values.name,
+      path: pathname,
+      username: values.username,
+      userId: user.id,
+      bio: values.bio,
+      image: values.profile_photo,
+    });
+
+    if (pathname === "/profile/edit") {
+      router.back();
+    } else {
+      router.push("/");
+    }
+
   }
 
   const handleImage = (e: ChangeEvent<HTMLInputElement>, fieldChange: (value: string) => void) => {
