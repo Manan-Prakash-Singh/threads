@@ -46,3 +46,16 @@ interface Params {
     }
   }
   
+
+  export async function fetchUser(userId : string){
+    try{
+      connectToDB( )
+      return await User.findOne({ id :  userId})
+      // .populate({
+      //   path: 'communities',
+      //   model : community,
+      // })
+    }catch(error : any){
+      throw new Error(`failed to fetch user: ${error.message}`)
+    }
+  }
