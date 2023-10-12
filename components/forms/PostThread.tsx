@@ -1,7 +1,11 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import Image from "next/image"
+import * as z from "zod";
+import { useForm } from "react-hook-form";
+import { useOrganization } from "@clerk/nextjs";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { usePathname, useRouter } from "next/navigation";
+
 import {
   Form,
   FormControl,
@@ -9,31 +13,23 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
+} from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
-
-import { Textarea } from "@/components/ui/textarea"
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-
-import * as z from "zod"
-import { usePathname, useRouter } from "next/navigation"
-
-import { ThreadValidation } from '@/lib/validations/thread'
-import { updateUser } from "@/lib/actions/users.actions"
-import { createThread } from "@/lib/actions/thread.actions"
+import { ThreadValidation } from "@/lib/validations/thread";
+import { createThread } from "@/lib/actions/thread.actions";
 
 interface Props {
   userId: string;
 }
 
 function PostThread({ userId }: Props) {
+  const router = useRouter();
+  const pathname = usePathname();
 
-  const router = useRouter()
-  const pathname = usePathname()
+  const { organization } = useOrganization();
 
-
-  
   const form = useForm<z.infer<typeof ThreadValidation>>({
     resolver: zodResolver(ThreadValidation),
     defaultValues: {
@@ -46,7 +42,7 @@ function PostThread({ userId }: Props) {
     await createThread({
       text: values.thread,
       author: userId,
-      communityId: null,
+      communityId: organization ? organization.id : null,
       path: pathname,
     });
 
@@ -54,11 +50,12 @@ function PostThread({ userId }: Props) {
   };
 
   return (
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="mt-5 flex flex-col justify-start gap-10">
-          <FormField
+    <Form {...form}>
+      <form
+        className='mt-10 flex flex-col justify-start gap-10'
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <FormField
           control={form.control}
           name='thread'
           render={({ field }) => (
@@ -66,22 +63,20 @@ function PostThread({ userId }: Props) {
               <FormLabel className='text-base-semibold text-light-2'>
                 Content
               </FormLabel>
-              <FormControl className="no-focus border border-dark-4 bg-dark-3 text-light-1">
-                <Textarea
-                  rows={15}
-                  {...field}
-                />
+              <FormControl className='no-focus border border-dark-4 bg-dark-3 text-light-1'>
+                <Textarea rows={15} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="bg-primary-500">
+
+        <Button type='submit' className='bg-primary-500'>
           Post Thread
         </Button>
-        </form>
-      </Form>
-    )
+      </form>
+    </Form>
+  );
 }
 
-export default PostThread
+export default PostThread;
